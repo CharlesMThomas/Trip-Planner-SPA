@@ -4,7 +4,7 @@ const db = new Sequelize('postgres://localhost:5432/tripplanner', { logging: fal
 const Place = db.define('place', {
     address: {
         type: Sequelize.STRING
-    }, 
+    },
     city: {
         type: Sequelize.STRING
     },
@@ -38,7 +38,7 @@ const Hotel = db.define('hotel', {
 const Activity = db.define('activity', {
     name: {
         type: Sequelize.STRING
-    }, 
+    },
     age_range: {
         type: Sequelize.STRING
     }
@@ -65,4 +65,8 @@ Hotel.belongsTo (Place);
 Restaurant.belongsTo (Place);
 Activity.belongsTo(Place);
 
-module.exports = db;
+module.exports = {db,
+    Place,
+    Hotel,
+    Restaurant,
+    Activity};
