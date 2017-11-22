@@ -536,7 +536,13 @@ module.exports={"$version":8,"$root":{"version":{"required":true,"type":"enum","
 
 const mapboxgl = __webpack_require__(0);
 const buildMarker = __webpack_require__(3);
-let attractions_data;
+const attractions_data = {
+  selectedAttractions: {
+    hotels: [],
+    restaurants: [],
+    activities: []
+  }
+};
 
 mapboxgl.accessToken = "pk.eyJ1IjoiZWxhbmFtaWciLCJhIjoiY2phOXQxenJoMGFzcTMzcXAxcDNld3lpeiJ9.68A3hhLR8qbxv5rf4ai1zw";
 
@@ -556,8 +562,8 @@ marker.addTo(map);
 fetch('/api/')
   .then(res => res.json())
   .then(attractions => {
-    attractions_data = attractions;
-    console.log(attractions_data[0])
+    attractions_data.attractions = attractions;
+    console.log(attractions[2]);
     attractions.forEach((attraction, idx) => {
       let parent;
       switch(idx) {
@@ -589,23 +595,20 @@ fetch('/api/')
       let select = document.getElementById(`${attraction_action[0]}-choices`);
       let id = select.value;
       let name = select[select.selectedIndex].text;
-      console.log(select, id, name);
       addAttraction (id, name, attraction_action[0]);
     });
   });
 
   function addAttraction (id, name, type) {
-    //2.  Add the marker
-    let marker = addMarker(id, type);
-
-    //1.  Add to the itinerary panel
-    addType(name, type, marker);
+    console.log(attractions_data.selectedAttractions);
+    if (!attractions_data.selectedAttractions[type].includes(name))
+      if (type !== 'hotels' || attractions_data.selectedAttractions[type].length < 1)
+      //1.  Add to the itinerary panel
+      addType(name, type, addMarker(id, type));
   }
 
   function addType( name, type, marker){
-    console.log(marker);
-
-    console.log(map);
+    attractions_data.selectedAttractions[type].push(name);
     let newLi = document.createElement('li');
     let parentUl = document.getElementById(`${type}-list`);
     let remButton = document.createElement('button');
@@ -614,8 +617,12 @@ fetch('/api/')
     remButton.addEventListener('click', (e) => {
       e.target.parentNode.remove();
       marker.remove();
+      map.flyTo({center: fullstackCoords, zoom: 12});
+      attractions_data.selectedAttractions[type] = attractions_data.selectedAttractions[type].filter(attraction => {
+        return attraction !== name;
+      });
     });
-    newLi.appendChild(remButton);  
+    newLi.appendChild(remButton);
     let text = document.createTextNode(name);
     newLi.appendChild(text);
     parentUl.appendChild(newLi);
@@ -625,21 +632,58 @@ fetch('/api/')
     let attractionArr;
     switch (type) {
       case 'hotels':
-        attractionArr = attractions_data [0];
+        attractionArr = attractions_data.attractions [0];
         break;
-      case 'restaurants': 
-        attractionArr = attractions_data [1];
+      case 'restaurants':
+        attractionArr = attractions_data.attractions [1];
         break;
-      case 'activities': 
-        attractionArr = attractions_data [1];
+      case 'activities':
+        attractionArr = attractions_data.attractions [2];
     }
 
-    let marker = buildMarker(type, attractionArr[id-1].place.location);
+    let attraction = attractionArr[id -1];
+    let coordinates = attraction.place.location;
+
+    let marker = buildMarker(type, coordinates);
     marker.addTo(map);
+    let description = getDescription(attraction, type);
+    console.log('Marker', marker);
+    marker.setPopup(new mapboxgl.Popup()
+        .setLngLat(coordinates)
+        .setHTML(description))
+
+    map.flyTo({center: coordinates, zoom: 15});
     return marker;
   }
 
-  
+  function getDescription (attraction, type) {
+    let description = {};
+    console.log(type);
+
+    switch(type) {
+      case 'hotels':
+        description.amenities = attraction.amenities;
+        description.num_stars = attraction.num_stars;
+        break;
+      case 'restaurants':
+        description.price = attraction.price;
+        description.cuisine = attraction.cuisine;
+        break;
+      case 'activities':
+        console.log('Keys', Object.keys(attraction));
+        description.age_range = attraction.age_range;
+    }
+
+    let html = `<strong>${attraction.name}</strong><br>`;
+    html += Object.keys(description).map(key => {
+      return key + ": " + description[key]
+    }).join('<br>');
+    console.log(html);
+
+    return html;
+  }
+
+
 
 /***/ }),
 /* 2 */
