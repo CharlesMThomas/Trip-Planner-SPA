@@ -81,14 +81,17 @@ select {
   -webkit-appearance: menulist-button;
 }
 
-.options-btn {
+button {
   height: 20px;
   width: 20px;
   border-radius: 50%;
   font-size: 12px;
-  background: #5f9bc0;
-  border: 0;
   color: #fff;
+  border: 0;
+}
+
+.options-btn {
+  background: #5f9bc0;
 }
 
 .options-btn:hover {
@@ -99,5 +102,23 @@ select {
   background: #286090;
 }
 
+.itinerary-btn {
+  background: #e05957;
+  margin-right: 1em;
+}
 
+.itinerary-btn:hover {
+  background: #f71010;
+}
 
+.itinerary-btn:active {
+  background: #be0101;
+}
+
+li {
+  list-style-type: none;
+}
+
+ul {
+  padding-left: 5px;
+}
